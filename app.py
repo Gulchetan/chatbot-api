@@ -3,52 +3,52 @@ from flask_cors import CORS
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import google.generativeai as genai
+from openai import OpenAI
 
-# Load environment variables from a .env file
+# Load environment variables from .env
 load_dotenv(dotenv_path='.env')
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable Cross-Origin Resource Sharing for all routes
+CORS(app)
 
-class GeminiWeatherChatbot:
+class GPTWeatherChatbot:
     """
-    A chatbot that uses the Google Gemini API for weather-related questions.
+    A chatbot that uses OpenAI GPT API for weather-related questions.
     """
     def __init__(self):
-        # Configure the Gemini API with the key from the .env file
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
-            raise Exception("Google AI API key (GOOGLE_API_KEY) not configured in .env file.")
-        
-        genai.configure(api_key=self.api_key)
-        
-        # Create the Gemini model instance
-        # Using gemini-1.5-flash for speed, or you can use 'gemini-1.5-pro'
-        self.model = genai.GenerativeModel('gemini-2.5-pro')
+            raise Exception("OpenAI API key (OPENAI_API_KEY) not configured in .env file.")
+
+        # Initialize OpenAI client
+        self.client = OpenAI(api_key=self.api_key)
 
     def get_response(self, message):
         """
-        Gets a smart, AI-generated response from the Gemini model.
+        Gets a smart, AI-generated response from OpenAI GPT.
         """
         try:
-            # Simple prompt for the model
             prompt = f"You are a helpful weather assistant. Answer this question concisely: {message}"
-            
-            # Generate content using the Gemini API
-            response = self.model.generate_content(prompt)
-            
-            # Extract and return the text part of the response
-            return response.text.strip()
-            
-        except Exception as e:
-            print(f"Error calling Gemini API: {e}")
-            return "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again."
 
-# Create an instance of the chatbot
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",   # You can switch to gpt-4o / gpt-4.1 / gpt-3.5-turbo
+                messages=[
+                    {"role": "system", "content": "You are a helpful weather assistant."},
+                    {"role": "user", "content": message}
+                ],
+                temperature=0.7
+            )
+
+            return response.choices[0].message.content.strip()
+
+        except Exception as e:
+            print(f"Error calling OpenAI API: {e}")
+            return "I'm sorry, I couldn't fetch the response right now. Please try again."
+
+# Create chatbot instance
 try:
-    chatbot = GeminiWeatherChatbot()
+    chatbot = GPTWeatherChatbot()
 except Exception as e:
     print(f"Failed to initialize chatbot: {e}")
     chatbot = None
@@ -68,13 +68,13 @@ def chat():
         
         print(f"Incoming message: {message}")
         response_text = chatbot.get_response(message)
-        print(f"Gemini response: {response_text}")
+        print(f"GPT response: {response_text}")
         
         return jsonify({
             'response': response_text,
             'timestamp': datetime.now().isoformat(),
             'status': 'success',
-            'source': 'google_gemini'
+            'source': 'openai_gpt'
         })
     except Exception as e:
         print(f"Server error: {e}")
@@ -87,16 +87,16 @@ def health():
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
         'service': 'Weather Chatbot API',
-        'llm_integration': 'Google Gemini',
+        'llm_integration': 'OpenAI GPT',
         'api_key_status': api_key_status,
-        'model': 'gemini-1.5-flash-latest'
+        'model': 'gpt-4o-mini'
     })
 
 if __name__ == '__main__':
-    print("Starting Weather Chatbot API with Google Gemini...")
+    print("Starting Weather Chatbot API with OpenAI GPT...")
     if not chatbot:
-        print("!!! CRITICAL ERROR: Chatbot failed to start. Check your GOOGLE_API_KEY in the .env file. !!!")
+        print("!!! CRITICAL ERROR: Chatbot failed to start. Check your OPENAI_API_KEY in the .env file. !!!")
     else:
         print("API available at: http://localhost:5000")
-        print("Model: gemini-1.5-flash-latest")
+        print("Model: gpt-4o-mini")
         app.run(debug=True, host='0.0.0.0', port=5000)
