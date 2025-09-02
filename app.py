@@ -26,7 +26,7 @@ class GeminiWeatherChatbot:
         
         # Create the Gemini model instance
         # Using gemini-1.5-flash for speed, or you can use 'gemini-1.5-pro'
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-2.5-pro')
 
     def get_response(self, message):
         """
