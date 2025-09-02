@@ -29,7 +29,7 @@ class GPTWeatherChatbot:
         Gets a smart, AI-generated response from OpenAI GPT.
         """
         try:
-            prompt = f"You are a helpful weather assistant. Answer this question concisely: {message}"
+            prompt = f"You are a helpful as a  weather assistant. Answer this question concisely: {message}"
 
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",   # You can switch to gpt-4o / gpt-4.1 / gpt-3.5-turbo
