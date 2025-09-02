@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import OpenAI   # OpenAI SDK (new version)
 
 # Load environment variables from .env
 load_dotenv(dotenv_path='.env')
@@ -29,10 +29,8 @@ class GPTWeatherChatbot:
         Gets a smart, AI-generated response from OpenAI GPT.
         """
         try:
-            prompt = f"You are a helpful as a  weather assistant. Answer this question concisely: {message}"
-
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",   # You can switch to gpt-4o / gpt-4.1 / gpt-3.5-turbo
+                model="gpt-4o-mini",   # You can change to gpt-4o / gpt-4.1 / gpt-3.5-turbo
                 messages=[
                     {"role": "system", "content": "You are a helpful weather assistant."},
                     {"role": "user", "content": message}
